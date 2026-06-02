@@ -3,6 +3,7 @@
 This guide establishes the structural scaffolding, type specifications, and lifecycle management protocols for building `@riganb/use-content`.
 
 ## Repository Directory Layout (Potential)
+
 ```text
 @riganb/use-content/
 ├── package.json               # Dual-exports conditional routing setup
@@ -21,3 +22,88 @@ This guide establishes the structural scaffolding, type specifications, and life
     │   └── Panel.tsx          # Canvas, form controllers, layout engine
     └── prod/
         └── useContentProd.ts  # Minimal return stub (zero overhead)
+
+```
+
+## Data Types & Schemas
+
+To ensure strong type safety, the field configuration is structured as a Discriminated Union. This prevents developers from accidentally assigning a type mismatch (e.g., setting `type: 'number'` but passing a string to `initValue`).
+
+```typescript
+export type SupportedType = 'string' | 'number' | 'boolean';
+
+export interface StringFieldConfig {
+  label: string;
+  type: 'string';
+  initValue?: string;
+}
+
+export interface NumberFieldConfig {
+  label: string;
+  type: 'number';
+  initValue?: number;
+}
+
+export interface BooleanFieldConfig {
+  label: string;
+  type: 'boolean';
+  initValue?: boolean;
+}
+
+// Discriminated union guarantees type coupling between 'type' and 'initValue'
+export type FieldConfig = StringFieldConfig | NumberFieldConfig | BooleanFieldConfig;
+
+export type HookInputSchema = Record<string, FieldConfig>;
+
+// Evaluated output dynamic record map mapping input keys to correct primitive types
+export type HookOutputData<T extends HookInputSchema> = {
+  [K in keyof T]: T[K]['type'] extends 'string' ? string
+                : T[K]['type'] extends 'number' ? number
+                : T[K]['type'] extends 'boolean' ? boolean 
+                : never;
+};
+```
+
+## State Registry & Lifecycle Mechanism
+
+The central store maintains a dual-map structure inside the React Context:
+
+1. `values`: `Record<string, string | number | boolean>` -> Holds the active state rendered to the user.
+2. `schemas`: `Record<string, FieldConfig>` -> Holds metadata used by the UI Panel to render the form controllers dynamically.
+
+### The Registration Lifecycle Sequence
+
+When components render or mount sequentially, they register their schema rules on the fly:
+
+```text
+[Component Mounts]
+       │
+       ▼
+Calls useContent(schema)
+       │
+       ▼
+Hook loops over schema keys
+       │
+ ┌─────┴────────────────────────────────────────┐
+ ▼                                              ▼
+[Key Exists in Store]                  [Key is New to Store]
+ ┌─────┴─────────────────────┐                  ┌─────┴─────────────────────┐
+ │ Retain current active code│                  │ Initialize:               │
+ │ state. Ignore new init.   │                  │ values[key] = initValue   │
+ └───────────────────────────┘                  │ schemas[key] = metadata   │
+                                                └───────────────────────────┘
+```
+
+## Production Bundling Swapping Protocol
+
+Inside `src/index.ts`, conditional resolution ensures tree-shaking parameters are correctly triggered during production static compilation. Production builds will completely strip out all weights from the `/src/dev/` tree.
+
+```typescript
+import { useContentDev, ContentProviderDev } from './dev';
+import { useContentProd, ContentProviderProd } from './prod';
+
+const isProd = process.env.NODE_ENV === 'production';
+
+export const useContent = isProd ? useContentProd : useContentDev;
+export const ContentProvider = isProd ? ContentProviderProd : ContentProviderDev;
+```
