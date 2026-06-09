@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Production Build Outputs
+dist/
+
+# Local Environment and Secrets
+.env
+.env.local
+.env.*.local
+
+# IDE and Editor Cache
+.DS_Store
+.eslintcache
+.tsup/
