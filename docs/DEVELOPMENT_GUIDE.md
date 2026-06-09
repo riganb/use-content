@@ -22,7 +22,17 @@ This guide establishes the structural scaffolding, type specifications, and life
     ├── dev/
     │   ├── ContentProviderDev.tsx # Active Context wrapper and dynamic React state engine
     │   ├── useContentDev.ts   # Active hooks, registration side-effects
-    │   └── Panel.tsx          # Canvas, form controllers, layout engine
+    │   ├── Panel.tsx          # Main orchestrator mounting sub-components
+    │   ├── PanelContainer.tsx # Drag handle, viewport anchoring, and visibility state shell
+    │   ├── FieldList.tsx      # Schema iterator mapping keys to form row primitives
+    │   ├── icons/
+    │   │   └── GearIcon.tsx   # Inline SVG React component for the contracted floating trigger
+    │   ├── styles/
+    │   │   └── theme.ts       # Central dark purple-ish pastel design tokens (colors, typography)
+    │   └── Controls/
+    │       ├── StringControl.tsx  # Interactive input router primitive for string mutations
+    │       ├── NumberControl.tsx  # Dynamic numeric input router primitive with parse guards
+    │       └── BooleanControl.tsx # Toggle-switch input router primitive for true/false states
     └── prod/
         ├── ContentProviderProd.tsx # No-op pass-through Fragment (zero performance overhead)
         └── useContentProd.ts  # Minimal static return stub (zero bundle overhead)
