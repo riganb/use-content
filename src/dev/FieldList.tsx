@@ -32,8 +32,8 @@ export const FieldList: React.FC = () => {
         <div style={{ fontSize: theme.typography.titleSize, fontWeight: 600, color: theme.colors.textPrimary, marginBottom: '6px' }}>
           No Fields Registered
         </div>
-        <p style={{ fontSize: theme.typography.fontSize, margin: 0, lineHeight: '1.4', maxWidth: '240px' }}>
-          Use the <code style={{ color: theme.colors.accent, backgroundColor: theme.colors.bgSecondary, padding: '2px 4px', borderRadius: '4px' }}>useContent</code> hook in your components to see them appear here live.
+        <p style={{ fontSize: theme.typography.fontSize, fontWeight: 500, margin: 0, lineHeight: '1.4', maxWidth: '240px' }}>
+          Use the <code style={{ color: theme.colors.accent, backgroundColor: theme.colors.bgSecondary, padding: '2px 4px', borderRadius: '4px', fontWeight: 600 }}>useContent</code> hook in your components to see them appear here live.
         </p>
       </div>
     );
@@ -84,9 +84,10 @@ export const FieldList: React.FC = () => {
                 key={key}
                 style={{
                   fontSize: theme.typography.fontSize,
+                  fontWeight: 500,
                   color: theme.colors.danger,
                   padding: '8px 0',
-                  borderBottom: `1px dashed ${theme.colors.border}`
+                  borderBottom: `4px dashed ${theme.colors.border}`
                 }}
               >
                 ⚠️ Unknown field type: {(config as any).type} for key "{key}"

@@ -9,38 +9,49 @@ interface PanelContainerProps {
 type ActiveTab = 'values' | 'settings';
 
 export const PanelContainer: React.FC<PanelContainerProps> = ({ children }) => {
-  // 1. Initialize states from localStorage or use defaults
-  const [isExpanded, setIsExpanded] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('__use_content_expanded__');
-      return saved !== null ? JSON.parse(saved) : false;
-    }
-    return false;
-  });
-
+  // 1. Initialize core state matrices safely
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<ActiveTab>('values');
   const [isMobile, setIsMobile] = useState<boolean>(false);
 
-  // Detect viewport size for responsive layout routing
+  // New singular state gate to verify all initialization passes are complete
+  const [isReady, setIsReady] = useState<boolean>(false);
+
+  // Consolidated Environment Pre-Flight Checklist
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
+    // A. Evaluate layout configurations from local storage state
+    const saved = localStorage.getItem('__use_content_expanded__');
+    if (saved !== null) {
+      setIsExpanded(JSON.parse(saved));
+    }
+
+    // B. Detect viewport size for responsive layout routing
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 480);
     };
 
-    handleResize(); // Initial check
+    handleResize(); // Execute initial check
     window.addEventListener('resize', handleResize);
+
+    // C. All checks complete. Open the render gate.
+    setIsReady(true);
+
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // 2. Synchronize layout configurations with local storage state
   useEffect(() => {
+    if (!isReady) return; // Prevent overwriting storage during initial synchronization pass
     localStorage.setItem('__use_content_expanded__', JSON.stringify(isExpanded));
-  }, [isExpanded]);
+  }, [isExpanded, isReady]);
 
   // 4. Toggle panel expansion state cleanly
   const toggleExpand = () => setIsExpanded((prev) => !prev);
+
+  // Hard Guardrail: Render absolutely nothing on the server or during initial client evaluation
+  if (!isReady) return null;
 
   // 5. Shared UI Trigger Badge (Collapsed State)
   if (!isExpanded) {
@@ -64,7 +75,8 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ children }) => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 99999,
+          // Set to maximum safe 32-bit integer layer to guarantee layout dominance
+          zIndex: 2147483647,
           transition: 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.2s ease',
           outline: 'none',
           padding: 0,
@@ -93,17 +105,17 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ children }) => {
         top: isMobile ? '50%' : '24px',
         transform: isMobile ? 'translate(50%, -50%)' : 'none',
         width: isMobile ? '85vw' : '340px',
-        height: isMobile ? '80vh' : 'auto',
-        maxHeight: isMobile ? '80vh' : 'calc(100vh - 48px)',
+        height: isMobile ? '80dvh' : 'auto',
+        maxHeight: isMobile ? '80dvh' : '50vh',
         backgroundColor: theme.colors.bgPrimary,
-        border: `1px solid ${theme.colors.border}`,
+        border: `4px solid ${theme.colors.border}`,
         borderRadius: theme.effects.radius,
         boxShadow: theme.effects.shadow,
         backdropFilter: theme.effects.backdropBlur,
         fontFamily: theme.typography.fontFamily,
         display: 'flex',
         flexDirection: 'column',
-        zIndex: 99999,
+        zIndex: 2147483647,
         overflow: 'hidden',
         color: theme.colors.textPrimary,
       }}
@@ -155,20 +167,20 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ children }) => {
         </div>
 
         {/* Tab Selection Sub-Navigation Bar */}
-        <div style={{ display: 'flex', gap: '4px', borderBottom: `1px solid ${theme.colors.border}` }}>
+        <div style={{ display: 'flex', gap: '4px', borderBottom: `2px solid ${theme.colors.border}` }}>
           <button
             onClick={() => setActiveTab('values')}
             style={{
               flex: 1,
               background: 'none',
               border: 'none',
-              borderBottom: `2px solid ${activeTab === 'values' ? theme.colors.accent : 'transparent'}`,
+              borderBottom: `4px solid ${activeTab === 'values' ? theme.colors.accent : 'transparent'}`,
               color: activeTab === 'values' ? theme.colors.textPrimary : theme.colors.textSecondary,
               padding: '6px 0',
               cursor: 'pointer',
               fontFamily: theme.typography.fontFamily,
               fontSize: theme.typography.labelSize,
-              fontWeight: activeTab === 'values' ? 600 : 400,
+              fontWeight: activeTab === 'values' ? 600 : 500,
               transition: 'color 0.2s'
             }}
           >
@@ -180,13 +192,13 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ children }) => {
               flex: 1,
               background: 'none',
               border: 'none',
-              borderBottom: `2px solid ${activeTab === 'settings' ? theme.colors.accent : 'transparent'}`,
+              borderBottom: `4px solid ${activeTab === 'settings' ? theme.colors.accent : 'transparent'}`,
               color: activeTab === 'settings' ? theme.colors.textPrimary : theme.colors.textSecondary,
               padding: '6px 0',
               cursor: 'pointer',
               fontFamily: theme.typography.fontFamily,
               fontSize: theme.typography.labelSize,
-              fontWeight: activeTab === 'settings' ? 600 : 400,
+              fontWeight: activeTab === 'settings' ? 600 : 500,
               transition: 'color 0.2s'
             }}
           >
@@ -208,6 +220,7 @@ export const PanelContainer: React.FC<PanelContainerProps> = ({ children }) => {
               justifyContent: 'center',
               color: theme.colors.textSecondary,
               fontSize: theme.typography.fontSize,
+              fontWeight: 500,
               fontStyle: 'italic',
               textAlign: 'center',
               padding: '20px 0'
