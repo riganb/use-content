@@ -8,6 +8,7 @@ This guide establishes the structural scaffolding, type specifications, and life
 @riganb/use-content/
 ├── package.json               # Dual-exports conditional routing setup
 ├── tsconfig.json              # Compilation rules
+├── tsup.config.ts             # [New] Build and compilation parameters
 ├── .gitignore                 # Version control hygiene rules
 ├── .vscode/
 │   └── settings.json          # Workspace-locked compiler and format rules
@@ -112,11 +113,50 @@ Hook loops over schema keys
 Inside `src/index.ts`, conditional resolution ensures tree-shaking parameters are correctly triggered during production static compilation. Production builds will completely strip out all weights from the `/src/dev/` tree.
 
 ```typescript
-import { useContentDev, ContentProviderDev } from './dev';
-import { useContentProd, ContentProviderProd } from './prod';
+import { ContentProviderDev } from './dev/ContentProviderDev';
+import { useContentDev } from './dev/useContentDev';
+import { ContentProviderProd } from './prod/ContentProviderProd';
+import { useContentProd } from './prod/useContentProd';
 
 const isProd = process.env.NODE_ENV === 'production';
 
 export const useContent = isProd ? useContentProd : useContentDev;
 export const ContentProvider = isProd ? ContentProviderProd : ContentProviderDev;
+
+export type { FieldConfig, HookInputSchema, SupportedType } from './types';
+
 ```
+
+## Phase Gamma: Compilation, Bundling & Distribution Specs
+
+To ensure universal compatibility across modern framework environments (Vite, Next.js, Webpack, etc.) while preserving strict optimization boundaries, compilation uses a customized `tsup` orchestration script.
+
+### 1. Code Generation Targets
+
+Compilation automatically branches into two distinct module structures:
+
+* **ESM (ECMAScript Modules):** Generates `.js` code distributions intended for modern module bundlers that utilize tree-shaking mechanisms.
+* **CJS (CommonJS):** Generates `.cjs` fallback paths targeting legacy Node server environments or older server-side rendering configurations.
+* **Declarations:** Compiles standard structural `.d.ts` definitions to provide automated type inference within modern code editors.
+
+### 2. Environment Evaluation Guardrails
+
+The compiler is intentionally instructed **not** to inject or pre-bake the `process.env.NODE_ENV` value during our compilation step. The ternary expression `isProd = process.env.NODE_ENV === 'production'` must remain a literal text assignment inside the distributed code bundle. This defers evaluation to the consumer's build platform, allowing downstream tree-shaking pipelines to completely prune the entire `src/dev/` module structure out of production production assets.
+
+### 3. Local Verification Protocol
+
+Before shipping packages to public artifact registries, package validity can be verified locally through the following sandboxed workflow:
+
+```bash
+# 1. Build the production module packages locally
+npm run build
+
+# 2. Package the compiled artifacts into a compressed local tarball
+npm pack
+
+# 3. Navigate into an isolated testing sandbox application and install the tarball directly
+npm install ../path/to/riganb-use-content-x.y.z.tgz
+
+```
+
+---
