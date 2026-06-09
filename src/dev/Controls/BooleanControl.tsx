@@ -22,7 +22,7 @@ export const BooleanControl: React.FC<BooleanControlProps> = ({ label, value, on
         style={{
           fontSize: theme.typography.labelSize,
           color: theme.colors.textSecondary,
-          fontWeight: 500,
+          fontWeight: 600,
           cursor: 'pointer',
           userSelect: 'none',
           flex: 1
@@ -40,7 +40,7 @@ export const BooleanControl: React.FC<BooleanControlProps> = ({ label, value, on
           height: '20px',
           borderRadius: '10px',
           backgroundColor: value ? theme.colors.accent : theme.colors.bgSecondary,
-          border: `1px solid ${theme.colors.border}`,
+          border: `2px solid ${theme.colors.border}`,
           cursor: 'pointer',
           position: 'relative',
           transition: 'background-color 0.2s ease, border-color 0.2s ease',

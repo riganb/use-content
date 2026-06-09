@@ -16,7 +16,7 @@ export const StringControl: React.FC<StringControlProps> = ({ label, value, onCh
           fontSize: theme.typography.labelSize,
           color: theme.colors.textSecondary,
           marginBottom: '4px',
-          fontWeight: 500
+          fontWeight: 600
         }}
       >
         {label}
@@ -30,7 +30,7 @@ export const StringControl: React.FC<StringControlProps> = ({ label, value, onCh
           boxSizing: 'border-box',
           padding: '6px 10px',
           backgroundColor: theme.colors.bgSecondary,
-          border: `1px solid ${theme.colors.border}`,
+          border: `2px solid ${theme.colors.border}`,
           borderRadius: '4px',
           color: theme.colors.textPrimary,
           fontFamily: theme.typography.fontFamily,
@@ -40,7 +40,7 @@ export const StringControl: React.FC<StringControlProps> = ({ label, value, onCh
         }}
         onFocus={(e) => {
           e.currentTarget.style.borderColor = theme.colors.accent;
-          e.currentTarget.style.boxShadow = `0 0 0 2px ${theme.colors.border}`;
+          e.currentTarget.style.boxShadow = `0 0 0 1px ${theme.colors.border}`;
         }}
         onBlur={(e) => {
           e.currentTarget.style.borderColor = theme.colors.border;

@@ -22,4 +22,9 @@ export default defineConfig({
 
   // 6. Externalize React so it isn't accidentally bundled into our code
   external: ['react', 'react-dom'],
+
+  // CRITICAL: Tells tsup to inject the RSC client boundary flag at the top of all generated chunks
+  banner: {
+    js: '"use client";',
+  },
 });
