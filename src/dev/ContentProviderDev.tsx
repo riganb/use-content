@@ -1,10 +1,11 @@
 import React, { createContext, useCallback, useContext, useState } from 'react';
-import {
+import type {
   ContentContextType,
   ContentSchemas,
   ContentValues,
   HookInputSchema
 } from '../types';
+import { Panel } from './Panel';
 
 const ContentContext = createContext<ContentContextType | null>(null);
 
@@ -14,6 +15,7 @@ export const ContentProviderDev: React.FC<{ children: React.ReactNode }> = ({ ch
 
   // Dynamic Registration Engine
   const registerFields = useCallback((incomingSchema: HookInputSchema) => {
+    // 1. Update Schemas State Matrix Safely
     setSchemas((prevSchemas) => {
       let schemasChanged = false;
       const nextSchemas = { ...prevSchemas };
@@ -33,6 +35,7 @@ export const ContentProviderDev: React.FC<{ children: React.ReactNode }> = ({ ch
       return prevSchemas;
     });
 
+    // 2. Update Values State Matrix Safely
     setValues((prevValues) => {
       let valuesChanged = false;
       const nextValues = { ...prevValues };
@@ -40,12 +43,13 @@ export const ContentProviderDev: React.FC<{ children: React.ReactNode }> = ({ ch
       for (const [key, config] of Object.entries(incomingSchema)) {
         // Rule 1: If key is entirely new, initialize its default value
         if (!(key in nextValues)) {
+          // Utilizing our locked-down initValue property configuration
           nextValues[key] = config.initValue !== undefined ? config.initValue : '';
           valuesChanged = true;
         }
       }
 
-      // Mirror state check for values mapping
+      // Mirror state check for values mapping to prevent infinite re-renders
       return valuesChanged ? nextValues : prevValues;
     });
   }, []);
@@ -61,16 +65,19 @@ export const ContentProviderDev: React.FC<{ children: React.ReactNode }> = ({ ch
   return (
     <ContentContext.Provider value={{ values, schemas, registerFields, updateValue }}>
       {children}
-      {/* Our Floating UI Panel will be mounted here in Phase 2 */}
+      {/* Injecting our modular, dark purple visual playground panel at the application root.
+        It safely listens to registration changes instantly out of the box!
+      */}
+      <Panel />
     </ContentContext.Provider>
   );
 };
 
-// Custom internal hook to safely tap into the context
+// Custom internal hook to safely tap into the context layout across sub-components
 export const useContentContext = () => {
   const context = useContext(ContentContext);
   if (!context) {
-    throw new Error('useContent must be wrapped within a <ContentProvider />');
+    throw new Error('useContentContext must be wrapped within a <ContentProviderDev />');
   }
   return context;
 };
