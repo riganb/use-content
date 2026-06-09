@@ -2,12 +2,15 @@
 
 This guide establishes the structural scaffolding, type specifications, and lifecycle management protocols for building `@riganb/use-content`.
 
-## Repository Directory Layout (Potential)
+## Repository Directory Layout
 
 ```text
 @riganb/use-content/
 ├── package.json               # Dual-exports conditional routing setup
 ├── tsconfig.json              # Compilation rules
+├── .gitignore                 # Version control hygiene rules
+├── .vscode/
+│   └── settings.json          # Workspace-locked compiler and format rules
 ├── README.md                  # Public onboarding and consumer usage
 ├── CONTRIBUTING.md            # Styling guidelines and code constraints
 ├── docs/                      # Internal architectural blueprints
@@ -16,13 +19,13 @@ This guide establishes the structural scaffolding, type specifications, and life
 └── src/
     ├── index.ts               # Environment evaluator and entry pivot
     ├── types.ts               # Shared internal and public typings
-    ├── context.tsx            # Core Context wrapper and React state engine
     ├── dev/
+    │   ├── ContentProviderDev.tsx # Active Context wrapper and dynamic React state engine
     │   ├── useContentDev.ts   # Active hooks, registration side-effects
     │   └── Panel.tsx          # Canvas, form controllers, layout engine
     └── prod/
-        └── useContentProd.ts  # Minimal return stub (zero overhead)
-
+        ├── ContentProviderProd.tsx # No-op pass-through Fragment (zero performance overhead)
+        └── useContentProd.ts  # Minimal static return stub (zero bundle overhead)
 ```
 
 ## Data Types & Schemas
@@ -59,7 +62,7 @@ export type HookInputSchema = Record<string, FieldConfig>;
 export type HookOutputData<T extends HookInputSchema> = {
   [K in keyof T]: T[K]['type'] extends 'string' ? string
                 : T[K]['type'] extends 'number' ? number
-                : T[K]['type'] extends 'boolean' ? boolean 
+                : T[K]['type'] extends 'boolean' ? boolean
                 : never;
 };
 ```
