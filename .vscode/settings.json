@@ -1,0 +1,20 @@
+{
+  /* Code Layout & Formatting */
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+  },
+  /* File & Git Hygiene */
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  /* Modern TypeScript & Search Performance */
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "js/ts.tsdk.promptToUseWorkspaceVersion": true,
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true
+  }
+}
