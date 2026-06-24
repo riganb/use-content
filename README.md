@@ -9,7 +9,7 @@ A lightweight, type-safe, headless content injection hook and live-editing devel
 * **Zero-Config Dashboard:** An atmospheric, responsive twilight-purple developer panel injected automatically into your development application root.
 * **Inline Schema Registration:** Write component mock schemas directly where they live; fields self-register instantly upon runtime mounting.
 * **Discriminated Type Safety:** Tight TypeScript union coupling that guarantees `initValue` types match their assigned control primitives perfectly.
-* **Absolute Zero Production Footprint:** Automatic compilation switches evaluate environment conditions at the builder level, allowing production bundlers to completely tree-shake and strip out the developer panel, saving critical client bandwidth.
+* **Explicit Environment Control:** `ContentProvider` defaults from `NODE_ENV`, but `enabled` or a `contentClient` can force the live developer context on preview deployments or force the empty production path anywhere.
 
 ---
 
@@ -36,6 +36,32 @@ import { ContentProvider } from '@riganb/use-content';
 export function App() {
   return (
     <ContentProvider>
+      <MyFeatureComponent />
+    </ContentProvider>
+  );
+}
+```
+
+`ContentProvider` uses the developer context by default unless `process.env.NODE_ENV === 'production'`. Pass `enabled` when the deployment environment should decide independently from `NODE_ENV`:
+
+```tsx
+<ContentProvider enabled={process.env.NEXT_PUBLIC_CONTENT_ENABLED === 'true'}>
+  <MyFeatureComponent />
+</ContentProvider>
+```
+
+For shared configuration, create a content client and pass it to the provider:
+
+```tsx
+import { ContentProvider, createContentClient } from '@riganb/use-content';
+
+const contentClient = createContentClient({
+  enabled: process.env.NEXT_PUBLIC_CONTENT_ENABLED === 'true',
+});
+
+export function App() {
+  return (
+    <ContentProvider client={contentClient}>
       <MyFeatureComponent />
     </ContentProvider>
   );
@@ -94,17 +120,15 @@ The hook engine parses three core presentational primitives dynamically:
 
 ---
 
-## ⚡ Production Infrastructure (Zero-Cost Overhead)
+## ⚡ Production Infrastructure
 
-This package implements an environment-aware compilation entry pivot inside its main distribution layout.
+This package implements an environment-aware default inside its main provider.
 
-When your application framework builds its static production bundles (e.g., via `npm run build` using Vite, Next.js, or Webpack), the compiler evaluates the literal conditional check `process.env.NODE_ENV === 'production'`.
+When `enabled` is omitted, production builds use the no-op behavior because `process.env.NODE_ENV === 'production'`. In that mode, `useContent` skips registration and returns each field's `initValue`.
 
-Because the evaluation branch is left completely unresolved during library build-time:
+Preview deployments can opt into the full live panel by passing `enabled={true}` or a client configured with `{ enabled: true }`. Production deployments can force the empty context by passing `enabled={false}`.
 
-1. The bundler detects the entire `/dev/` directory tree (the premium panel, inline SVG assets, custom form components, and state synchronization loops) as dead, unreachable code blocks.
-2. It completely scrapes them away using **Tree-Shaking**.
-3. The hook switches over to a lean, no-op performance pass-through module that skips registration loops and delivers your specified fallback `initValue` keys instantly, resulting in an added final application weight of **less than 1 kB**.
+The main entry does not statically import the developer panel. When content editing is enabled, the panel loads through a dynamic import so production bundles can keep the main path lightweight.
 
 ---
 

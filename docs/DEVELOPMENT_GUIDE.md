@@ -18,11 +18,15 @@ This guide establishes the structural scaffolding, type specifications, and life
 │   ├── PROJECT_PLAN.md        # Roadmap and scaling vision
 │   └── DEVELOPMENT_GUIDE.md   # [This File] Deep technical specs
 └── src/
-    ├── index.ts               # Environment evaluator and entry pivot
+    ├── index.ts               # Public hook, provider, client, and lazy panel boundary
     ├── types.ts               # Shared internal and public typings
+    ├── core/
+    │   ├── ContentContext.ts  # Shared runtime context used by hook and dev panel
+    │   ├── ContentProvider.ts # Runtime provider, state store, and lazy panel boundary
+    │   ├── createContentClient.ts # Shared client configuration factory
+    │   ├── useContent.ts      # Public hook implementation
+    │   └── values.ts          # Enabled resolution and value fallback helpers
     ├── dev/
-    │   ├── ContentProviderDev.tsx # Active Context wrapper and dynamic React state engine
-    │   ├── useContentDev.ts   # Active hooks, registration side-effects
     │   ├── Panel.tsx          # Main orchestrator mounting sub-components
     │   ├── PanelContainer.tsx # Drag handle, viewport anchoring, and visibility state shell
     │   ├── FieldList.tsx      # Schema iterator mapping keys to form row primitives
@@ -34,9 +38,6 @@ This guide establishes the structural scaffolding, type specifications, and life
     │       ├── StringControl.tsx  # Interactive input router primitive for string mutations
     │       ├── NumberControl.tsx  # Dynamic numeric input router primitive with parse guards
     │       └── BooleanControl.tsx # Toggle-switch input router primitive for true/false states
-    └── prod/
-        ├── ContentProviderProd.tsx # No-op pass-through Fragment (zero performance overhead)
-        └── useContentProd.ts  # Minimal static return stub (zero bundle overhead)
 ```
 
 ## Data Types & Schemas
@@ -108,23 +109,25 @@ Hook loops over schema keys
                                                 └───────────────────────────┘
 ```
 
-## Production Bundling Swapping Protocol
+## Runtime Context Selection Protocol
 
-Inside `src/index.ts`, conditional resolution ensures tree-shaking parameters are correctly triggered during production static compilation. Production builds will completely strip out all weights from the `/src/dev/` tree.
+Inside `src/index.ts`, `ContentProvider` resolves whether the content runtime is enabled. The default still follows `NODE_ENV`, while the public `enabled` prop or `createContentClient()` can override that default for preview deployments.
 
 ```typescript
-import { ContentProviderDev } from './dev/ContentProviderDev';
-import { useContentDev } from './dev/useContentDev';
-import { ContentProviderProd } from './prod/ContentProviderProd';
-import { useContentProd } from './prod/useContentProd';
+// src/index.ts
+export { ContentProvider } from './core/ContentProvider';
+export { createContentClient } from './core/createContentClient';
+export { useContent } from './core/useContent';
+```
 
-const isProd = process.env.NODE_ENV === 'production';
+```typescript
+// src/core/ContentProvider.ts
+const DevPanel = lazy(() => import('../dev/Panel.js').then((module) => ({ default: module.Panel })));
 
-export const useContent = isProd ? useContentProd : useContentDev;
-export const ContentProvider = isProd ? ContentProviderProd : ContentProviderDev;
-
-export type { FieldConfig, HookInputSchema, SupportedType } from './types';
-
+export function ContentProvider({ children, client, enabled }: ContentProviderProps) {
+  const resolvedEnabled = client?.enabled ?? enabled ?? !isProd;
+  // Provides one runtime context and renders the lazy dev panel only when enabled.
+}
 ```
 
 ## Phase Gamma: Compilation, Bundling & Distribution Specs
@@ -135,13 +138,15 @@ To ensure universal compatibility across modern framework environments (Vite, Ne
 
 Compilation automatically branches into two distinct module structures:
 
-* **ESM (ECMAScript Modules):** Generates `.js` code distributions intended for modern module bundlers that utilize tree-shaking mechanisms.
+* **ESM (ECMAScript Modules):** Generates `.js` code distributions intended for modern module bundlers that utilize tree-shaking and async chunk loading mechanisms.
 * **CJS (CommonJS):** Generates `.cjs` fallback paths targeting legacy Node server environments or older server-side rendering configurations.
 * **Declarations:** Compiles standard structural `.d.ts` definitions to provide automated type inference within modern code editors.
 
-### 2. Environment Evaluation Guardrails
+### 2. Environment Selection Guardrails
 
-The compiler is intentionally instructed **not** to inject or pre-bake the `process.env.NODE_ENV` value during our compilation step. The ternary expression `isProd = process.env.NODE_ENV === 'production'` must remain a literal text assignment inside the distributed code bundle. This defers evaluation to the consumer's build platform, allowing downstream tree-shaking pipelines to completely prune the entire `src/dev/` module structure out of production production assets.
+The compiler is intentionally instructed **not** to inject or pre-bake the `process.env.NODE_ENV` value during our compilation step. The runtime default remains `enabled = process.env.NODE_ENV !== 'production'`, but applications can pass `enabled={true}` or a client configured with `{ enabled: true }` for preview deployments.
+
+The main entry must not statically import the developer panel, controls, or icons. The ESM build enables splitting so the lazy panel import can become a separate async chunk.
 
 ### 3. Local Verification Protocol
 

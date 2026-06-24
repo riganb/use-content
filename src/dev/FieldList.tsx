@@ -1,5 +1,5 @@
 import React from 'react';
-import { useContentContext } from './ContentProviderDev';
+import { useContentContext } from '../core/ContentContext';
 import { BooleanControl } from './Controls/BooleanControl';
 import { NumberControl } from './Controls/NumberControl';
 import { StringControl } from './Controls/StringControl';
