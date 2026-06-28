@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 export type SupportedType = 'string' | 'number' | 'boolean';
 
 export interface StringFieldConfig {
@@ -37,8 +39,23 @@ export type ContentValues = Record<string, string | number | boolean>;
 export type ContentSchemas = Record<string, FieldConfig>;
 
 export interface ContentContextType {
+  enabled: boolean;
   values: ContentValues;
   schemas: ContentSchemas;
   registerFields: (schema: HookInputSchema) => void;
   updateValue: (key: string, value: string | number | boolean) => void;
+}
+
+export interface ContentClientConfig {
+  enabled?: boolean;
+}
+
+export interface ContentClient {
+  enabled?: boolean;
+}
+
+export interface ContentProviderProps {
+  children: ReactNode;
+  client?: ContentClient;
+  enabled?: boolean;
 }
