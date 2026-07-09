@@ -8,6 +8,7 @@ A lightweight, type-safe, headless content injection hook and live-editing devel
 
 * **Zero-Config Dashboard:** An atmospheric, responsive twilight-purple developer panel injected automatically into your development application root.
 * **Inline Schema Registration:** Write component mock schemas directly where they live; fields self-register instantly upon runtime mounting.
+* **Formatted JSON Export:** Copy the current registered content values as formatted JSON for sharing with teammates.
 * **Discriminated Type Safety:** Tight TypeScript union coupling that guarantees `initValue` types match their assigned control primitives perfectly.
 * **Explicit Environment Control:** `ContentProvider` defaults from `NODE_ENV`, but `enabled` or a `contentClient` can force the live developer context on preview deployments or force the empty production path anywhere.
 
