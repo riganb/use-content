@@ -3,6 +3,7 @@ import { useContentContext } from '../core/ContentContext';
 import { BooleanControl } from './Controls/BooleanControl';
 import { NumberControl } from './Controls/NumberControl';
 import { StringControl } from './Controls/StringControl';
+import { ExportJsonButton } from './ExportJsonButton';
 import { theme } from './styles/theme';
 
 export const FieldList: React.FC = () => {
@@ -42,6 +43,7 @@ export const FieldList: React.FC = () => {
   // 3. Render and Route Registered Controls List
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <ExportJsonButton schemas={schemas} values={values} />
       {schemaEntries.map(([key, config]) => {
         const currentValue = values[key];
 
